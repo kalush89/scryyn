@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  LAB
+  DOCTOR
+  INDIVIDUAL
+}
+
+enum BookingStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+
+model User {
+  id          Int         @id @default(autoincrement())
+  phone       String      @unique
+  email       String      @unique
+  password    String
+  address     String?
+  role        Role
+  createdAt   DateTime    @default(now())
+
+  // Relationships
+  lab         Lab?
+  doctor      Doctor?   
+  individual  Individual?
+  referral    Referral?    // a single patient can be refered
+  bookings    Booking[]   // Individual users can create multiple bookings
+}
+
+
+model Lab {
+  id          Int         @id @default(autoincrement())
+  name        String
+  referralFee   Float
+  createdAt   DateTime     @default(now())
+
+  // Relationships
+  users       User         @relation(fields: [userId], references: [id])
+  userId       Int          @unique
+  bookings    Booking[]    // A lab can be associated with multiple bookings
+  referrals   Referral[]   // A lab can be associated with multiple referrals
+  testsOffered TestsOffered[] // A lab can offer multiple tests
+}
+
+model Doctor {
+  id          Int         @id @default(autoincrement())
+  name        String       // First name/last name combo
+  specialization String
+  createdAt   DateTime     @default(now())
+
+  // Relationships
+  users       User         @relation(fields: [userId], references: [id])
+  userId       Int          @unique       
+  referrals   Referral[]   // A doctor can create multiple referrals
+  
+}
+
+model Individual {
+  id          Int         @id @default(autoincrement())
+  name        String       // First name/last name combo
+  createdAt   DateTime     @default(now())
+
+  // Relationships
+  users       User         @relation(fields: [userId], references: [id])
+  userId       Int          @unique       
+  
+}
+
+model TestTypes {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+
+  // Relationships
+  testsOffered TestsOffered[] // Many labs can offer this test
+}
+
+model TestsOffered {
+  id          Int         @id @default(autoincrement())
+  lab         Lab         @relation(fields: [labId], references: [id])
+  labId       Int
+  testType    TestTypes   @relation(fields: [testTypeId], references: [id])
+  testTypeId  Int
+  price       Float
+}
+
+model Booking {
+  id            Int           @id @default(autoincrement())
+  testType      String
+  status        BookingStatus @default(PENDING)
+  resultfilePath    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relationship
+  lab           Lab           @relation(fields: [labId], references: [id])
+  labId         Int           @unique
+  user        User            @relation(fields: [patientId], references: [id])
+  patientId      Int
+  payment       Payment       @relation(fields: [paymentId], references: [id])
+  paymentId     Int           @unique
+}
+
+model Referral {
+  id            Int           @id @default(autoincrement())
+  testType      String
+  status        BookingStatus @default(PENDING)
+  resultfilePath    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relationships
+  user          User          @relation(fields: [patientId], references: [id])
+  patientId     Int           @unique
+  doctor        Doctor        @relation(fields: [doctorId], references: [id])
+  doctorId      Int
+  lab           Lab           @relation(fields: [labId], references: [id])
+  labId         Int
+  payment       Payment       @relation(fields: [paymentId], references: [id])
+  paymentId     Int           @unique
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  amount         Float         // Total amount paids
+  createdAt      DateTime      @default(now())
+
+  // Relationships
+  booking        Booking?
+  referral       Referral?    
+}
