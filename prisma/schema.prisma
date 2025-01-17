@@ -18,7 +18,13 @@ enum Role {
   ADMIN
   LAB
   DOCTOR
-  INDIVIDUAL
+  PATIENT
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  REJECTED
 }
 
 enum BookingStatus {
@@ -35,14 +41,16 @@ model User {
   password    String
   address     String?
   role        Role
+  accountStatus AccountStatus   @default(PENDING) // Possible values: PENDING, ACTIVE, REJECTED
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
 
   // Relationships
   lab         Lab?
   doctor      Doctor?   
-  individual  Individual?
+  patient     Patient?
   referral    Referral?    // a single patient can be refered
-  bookings    Booking[]   // Individual users can create multiple bookings
+  bookings    Booking[]   // Patient users can create multiple bookings
 }
 
 
@@ -50,11 +58,15 @@ model Lab {
   id          Int         @id @default(autoincrement())
   name        String
   referralFee   Float
+  registrationNumber String
+  latitude    Float?
+  longitude   Float?
   createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt @default(now())
 
   // Relationships
   users       User         @relation(fields: [userId], references: [id])
-  userId       Int          @unique
+  userId      Int          @unique
   bookings    Booking[]    // A lab can be associated with multiple bookings
   referrals   Referral[]   // A lab can be associated with multiple referrals
   testsOffered TestsOffered[] // A lab can offer multiple tests
@@ -64,6 +76,7 @@ model Doctor {
   id          Int         @id @default(autoincrement())
   name        String       // First name/last name combo
   specialization String
+  licenseNumber  String
   createdAt   DateTime     @default(now())
 
   // Relationships
@@ -73,14 +86,16 @@ model Doctor {
   
 }
 
-model Individual {
+model Patient {
   id          Int         @id @default(autoincrement())
   name        String       // First name/last name combo
-  createdAt   DateTime     @default(now())
+  sex         String      
+  dateOfBirth DateTime    
+  createdAt   DateTime    @default(now())
 
   // Relationships
-  users       User         @relation(fields: [userId], references: [id])
-  userId       Int          @unique       
+  users       User        @relation(fields: [userId], references: [id])
+  userId      Int        @unique       
   
 }
 
@@ -88,7 +103,7 @@ model TestTypes {
   id          Int         @id @default(autoincrement())
   name        String
   description String?
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime    @default(now())
 
   // Relationships
   testsOffered TestsOffered[] // Many labs can offer this test
@@ -141,7 +156,7 @@ model Referral {
 
 model Payment {
   id             Int           @id @default(autoincrement())
-  amount         Float         // Total amount paids
+  amount         Float         // Total amount paid
   createdAt      DateTime      @default(now())
 
   // Relationships
