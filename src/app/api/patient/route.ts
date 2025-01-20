@@ -1,38 +1,14 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
-import * as z from "zod";
-import userValSchema from "@/utils/validateUser";
+import { patientSchema } from "@/utils/zodValidation/validatePatient";
 
-// Validation schema for individuals
-const patientSchema = z.object({
-   
-    firstname: z
-        .string()
-        .min(3, "First name must have at least 3 characters long")
-        .max(15, "First name must be at most 15 characters long"),
-    lastname: z
-        .string()
-        .min(3, "First name must have at least 3 characters long")
-        .max(15, "First name must be at most 15 characters long"),
-    sex: z
-        .string()
-        .nonempty("The sex field is required"),
-    dateOfBirth: z
-        .string()
-        .nonempty("Date of birth is required")
-        .regex(/^\d{4}-\d{2}-\d{2}$/,"Invalid format. Date of birth must be in the format YYYY-MM-DD.")
-        .refine((dob) => {
-            const parsedDate = new Date(dob);
-            return !isNaN(parsedDate.getTime()); // Check if the date is valid
-          }, "Invalid date value")
-});
+
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { firstname, lastname, sex, dateOfBirth } = patientSchema.parse(body);
-        const { email, phone, password, address } = userValSchema.parse(body);
+        const { email, phone, password, address, firstname, lastname, sex, dateOfBirth } = patientSchema.parse(body);
 
         // Check if email already exists
         const existingUser = await db.user.findUnique({ 

@@ -1,24 +1,17 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
-import * as z from "zod";
 import { hash } from "bcrypt";
-import userValSchema from "@/utils/validateUser";
+import { labSchema } from "@/utils/zodValidation/validateLab";
 
-// Validation schema for labs
-const labSchema = z.object({
-    labName: z.string().nonempty("Lab name is required"),
-    referralFee: z.number().min(1, "Referral fee you wish to give a doctor is required"),
-    registrationNumber: z.string().nonempty("Lab registration number is required"),
 
-});
+
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { labName, referralFee, registrationNumber } =
+        const { email, phone, password, address, labName, referralFee, registrationNumber } =
             labSchema.parse(body);
-        const { email, phone, password, address } =
-            userValSchema.parse(body);
+        
 
         // Check if email already exists
         const existingLab = await db.user.findUnique({ 
