@@ -57,7 +57,7 @@ const DoctorSignUpForm = () => {
       console.log("Form data is valid:", validation.data);
 
       try {
-        const response = await fetch("/api/account/doctor", {
+        const response = await fetch("/api/doctor/account", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validation.data),
@@ -99,7 +99,7 @@ const DoctorSignUpForm = () => {
         className="w-full flex flex-col gap-2"
         aria-labelledby="form-title"
       >
-        <h2 id="form-title" className="sr-only">Doctor Registration Form</h2>
+        
         {responseMessage && (
           <div
             className="text-red-500 text-sm mb-4"

@@ -16,9 +16,10 @@ datasource db {
 
 enum Role {
   ADMIN
-  LAB
   DOCTOR
   PATIENT
+  LAB_ADMIN
+  LAB_TECHNICIAN
 }
 
 enum AccountStatus {
@@ -40,9 +41,10 @@ enum NotificationStatus {
 
 
 model User {
-  id          Int         @id @default(autoincrement())
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   phone       String      @unique
   email       String      @unique
+  emailVerified DateTime? @map("email_verified")
   password    String
   address     String?
   role        Role
@@ -51,120 +53,155 @@ model User {
   updatedAt   DateTime    @updatedAt @default(now())
 
   // Relationships
-  lab         Lab?
+  labAdmin      LabAdmin?  // New: Lab Admin relationship
+  labTechnician LabTechnician? // New: Lab Technician relationship
   doctor      Doctor?   
   patient     Patient?
   referral    Referral?    // a single patient can be refered
   bookings    Booking[]   // Patient users can create multiple bookings
   notifications Notification[] // User notifications
+  
 }
 
-
 model Lab {
-  id          Int         @id @default(autoincrement())
-  name        String
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
   referralFee   Float
   registrationNumber String
-  latitude    Float?
-  longitude   Float?
+  latitude      Float?
+  longitude     Float?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt @default(now())
+
+  // Relationships
+  technicians   LabTechnician[]  // Lab can have multiple technicians
+  admin         LabAdmin?
+  bookings      Booking[]        // A lab can be associated with multiple bookings
+  referrals     Referral[]       // A lab can be associated with multiple referrals
+  testsOffered  TestsOffered[]   // A lab can offer multiple tests
+  
+}
+
+model Doctor {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String       // First name/last name combo
+  specialization String
+  licenseNumber  String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt @default(now())
 
   // Relationships
   users       User         @relation(fields: [userId], references: [id])
-  userId      Int          @unique
-  bookings    Booking[]    // A lab can be associated with multiple bookings
-  referrals   Referral[]   // A lab can be associated with multiple referrals
-  testsOffered TestsOffered[] // A lab can offer multiple tests
-}
-
-model Doctor {
-  id          Int         @id @default(autoincrement())
-  name        String       // First name/last name combo
-  specialization String
-  licenseNumber  String
-  createdAt   DateTime     @default(now())
-
-  // Relationships
-  users       User         @relation(fields: [userId], references: [id])
-  userId       Int          @unique       
+  userId      String       @db.Uuid @unique       
   referrals   Referral[]   // A doctor can create multiple referrals
-  
 }
 
 model Patient {
-  id          Int         @id @default(autoincrement())
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String       // First name/last name combo
   sex         String      
   dateOfBirth DateTime    
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
 
   // Relationships
   users       User        @relation(fields: [userId], references: [id])
-  userId      Int        @unique       
+  userId      String      @db.Uuid @unique       
   
 }
 
+model LabAdmin {
+   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt @default(now())
+
+  // Relationships
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @db.Uuid @unique
+  lab         Lab       @relation(fields: [labId], references: [id])
+  labId       String    @db.Uuid @unique
+}
+
+model LabTechnician {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt @default(now())
+
+  // Relationships
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @db.Uuid @unique
+  lab         Lab       @relation(fields: [labId], references: [id])
+  labId       String    @db.Uuid @unique
+}
+
 model TestTypes {
-  id          Int         @id @default(autoincrement())
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String
   category    String
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
 
   // Relationships
   testsOffered TestsOffered[] // Many labs can offer this test
 }
 
 model TestsOffered {
-  id          Int         @id @default(autoincrement())
-  lab         Lab         @relation(fields: [labId], references: [id])
-  labId       Int
-  testType    TestTypes   @relation(fields: [testTypeId], references: [id])
-  testTypeId  Int
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   price       Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+
+  //Relationships
+  lab         Lab         @relation(fields: [labId], references: [id])
+  labId       String      @db.Uuid @unique
+  testType    TestTypes   @relation(fields: [testTypeId], references: [id])
+  testTypeId  String      @db.Uuid @unique
 }
 
 model Booking {
-  id            Int           @id @default(autoincrement())
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   testType      String
   status        BookingStatus @default(PENDING)
   resultfilePath    String?
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  updatedAt     DateTime      @updatedAt @default(now())
 
   // Relationship
   lab           Lab           @relation(fields: [labId], references: [id])
-  labId         Int           @unique
-  user        User            @relation(fields: [patientId], references: [id])
-  patientId      Int
+  labId         String        @db.Uuid @unique
+  user          User          @relation(fields: [patientId], references: [id])
+  patientId     String        @db.Uuid @unique
   payment       Payment       @relation(fields: [paymentId], references: [id])
-  paymentId     Int           @unique
+  paymentId     String        @db.Uuid @unique
 }
 
 model Referral {
-  id            Int           @id @default(autoincrement())
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   testType      String
   status        BookingStatus @default(PENDING)
   resultfilePath    String?
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  updatedAt     DateTime      @updatedAt @default(now())
 
   // Relationships
   user          User          @relation(fields: [patientId], references: [id])
-  patientId     Int           @unique
+  patientId     String        @db.Uuid @unique
   doctor        Doctor        @relation(fields: [doctorId], references: [id])
-  doctorId      Int
+  doctorId      String        @db.Uuid @unique
   lab           Lab           @relation(fields: [labId], references: [id])
-  labId         Int
+  labId         String        @db.Uuid @unique
   payment       Payment       @relation(fields: [paymentId], references: [id])
-  paymentId     Int           @unique
+  paymentId     String        @db.Uuid @unique
 }
 
 model Payment {
-  id             Int           @id @default(autoincrement())
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   amount         Float         // Total amount paid
-  createdAt      DateTime      @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt @default(now())
 
   // Relationships
   booking        Booking?
@@ -172,13 +209,13 @@ model Payment {
 }
 
 model Notification {
-  id             Int          @id @default(autoincrement())
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   content        String
   status         NotificationStatus @default(UNREAD)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  updatedAt      DateTime     @updatedAt @default(now())
 
   // Relationships
   user           User         @relation(fields: [userId], references: [id])
-  userId         Int
+  userId         String       @db.Uuid @unique
 }

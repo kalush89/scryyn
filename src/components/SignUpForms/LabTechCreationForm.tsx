@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import Button from "../Button";
-import { labSchema } from "@/utils/zodValidation/validateLab";
+import { labTechnicianSchema } from "@/utils/zodValidation/validateLabTechnician";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const LabSignUpForm = () => {
+const LabTechCreationForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [responseMessage, setResponseMessage] = useState("");
@@ -26,7 +26,7 @@ const LabSignUpForm = () => {
 
 
     // Validate form data using Zod
-    const validation = labSchema.safeParse(fields);
+    const validation = labTechnicianSchema.safeParse(fields);
 
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
@@ -46,7 +46,7 @@ const LabSignUpForm = () => {
       console.log("Form data is valid:", validation.data);
 
       try {
-        const response = await fetch("/api/lab/account", {
+        const response = await fetch("/api/labTech/account", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validation.data),
@@ -97,25 +97,25 @@ const LabSignUpForm = () => {
           <div className="relative w-1/2">
             <input
               type="text"
-              id="adminFirstName"
-              name="adminFirstName"
+              id="firstName"
+              name="firstName"
               placeholder=" "
               className="peer bg-white text-gray-700 border border-gray-300 w-full rounded-md px-6 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-required="true"
             />
             <label
-              htmlFor="adminFirstName"
+              htmlFor="firstName"
               className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
             >
-              Admin's First Name
+              Staff's First Name
             </label>
-            {errors.adminFirstName && (
+            {errors.firstName && (
               <p
                 className="text-red-500 text-sm mt-1"
                 id="error-firstName"
                 role="alert"
               >
-                {errors.adminFirstName}
+                {errors.firstName}
               </p>
             )}
           </div>
@@ -123,55 +123,28 @@ const LabSignUpForm = () => {
           <div className="relative w-1/2">
             <input
               type="text"
-              id="adminLastName"
-              name="adminLastName"
+              id="lastName"
+              name="lastName"
               placeholder=" "
               className="peer bg-white text-gray-700 border border-gray-300 w-full rounded-md px-6 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-required="true"
             />
             <label
-              htmlFor="adminLastName"
+              htmlFor="lastName"
               className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
             >
-              Admin's Last Name
+              Staff's Last Name
             </label>
-            {errors.adminLastName && (
+            {errors.lastName && (
               <p
                 className="text-red-500 text-sm mt-1"
                 id="error-lastName"
                 role="alert"
               >
-                {errors.adminLastName}
+                {errors.lastName}
               </p>
             )}
           </div>
-        </div>
-
-
-        <div className="relative">
-          <input
-            type="text"
-            id="labName"
-            name="labName"
-            placeholder=" "
-            className="peer bg-white text-gray-700 border border-gray-300 w-full rounded-md px-6 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-required="true"
-          />
-          <label
-            htmlFor="labName"
-            className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
-          >
-            Lab Name
-          </label>
-          {errors.labName && (
-            <p
-              className="text-red-500 text-sm mt-1"
-              id="error-labName"
-              role="alert"
-            >
-              {errors.labName}
-            </p>
-          )}
         </div>
 
         <div className="flex gap-4">
@@ -275,61 +248,11 @@ const LabSignUpForm = () => {
             htmlFor="address"
             className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
           >
-            Lab Address
+            Staff Address
           </label>
           {errors.address && (
             <p className="text-red-500 text-sm mt-1" id="error-address"
               role="alert">{errors.address}</p>
-          )}
-        </div>
-        <p className="text-xs mt-1">Commision you are willing to offer doctors for referrals </p>
-        <div className="relative">
-          <input
-            type="number"
-            id="referralFee"
-            name="referralFee"
-            placeholder=" "
-            className="peer bg-white text-gray-700 border border-gray-300 w-full rounded-md px-6 py-4 pr-10 text-base focus:outline-none"
-            aria-required="true"
-          />
-          <label
-            htmlFor="referralFee"
-            className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
-          >
-            Referral commission
-          </label>
-          <span className="absolute top-4 right-5 text-gray-500">
-            %
-          </span>
-          {errors.referralFee && (
-            <p
-              className="text-red-500 text-sm mt-1"
-              id="error-referralFee"
-              role="alert"
-            >
-              {errors.referralFee}
-            </p>
-          )}
-        </div>
-
-        <div className="relative">
-          <input
-            type="text"
-            id="registrationNumber"
-            name="registrationNumber"
-            placeholder=" "
-            className="peer bg-white text-gray-700 border border-gray-300 w-full rounded-md px-6 py-4 text-base focus:outline-none"
-            aria-required="true"
-          />
-          <label
-            htmlFor="registrationNumber"
-            className="absolute left-3 -top-0.5 text-base text-gray-500 transition-all transform scale-75 origin-[0] bg-white px-1 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 peer-focus:-top-0.5 peer-focus:scale-75 peer-focus:text-gray-700"
-          >
-            Registration Number
-          </label>
-          {errors.licenseNumber && (
-            <p className="text-red-500 text-sm mt-1" id="error-registrationNumber"
-              role="alert">{errors.registrationNumber}</p>
           )}
         </div>
 
@@ -344,11 +267,11 @@ const LabSignUpForm = () => {
           </Link>.
         </p>
         <div className="mt-4">
-          <Button label="Agree and Register" isLoading={isLoading} />
+          <Button label="Agree and Create" isLoading={isLoading} />
         </div>
       </form>
     </div>
   );
 };
 
-export default LabSignUpForm;
+export default LabTechCreationForm;

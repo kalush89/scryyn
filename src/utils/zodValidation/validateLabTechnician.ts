@@ -1,7 +1,6 @@
 import * as z from "zod";
-
-// Validation schema for labs
-export const labSchema = z.object({
+// Validation schema for individuals
+export const labTechnicianSchema = z.object({
     email: z
         .string()
         .email("Invalid email")
@@ -22,26 +21,14 @@ export const labSchema = z.object({
         .string()
         .max(255, "Address must be at most 255 characters long")
         .optional(),
-    labName: z
-        .string()
-        .min(4, "Lab name must be atleast 4 characters long."),
-    adminFirstName: z
+    firstName: z
         .string()
         .min(3, "First name must have at least 3 characters")
         .max(15, "First name must be at most 15 characters"),
-    adminLastName: z
+    lastName: z
         .string()
         .min(3, "First name must have at least 3 characters")
         .max(15, "First name must be at most 15 characters"),
-    referralFee: z
-        .coerce
-        .number()
-        .positive()
-        .min(1, "Referral commision must not be less than 1% of test fee"),
-    registrationNumber: z
-        .string()
-        .nonempty("Lab registration number is required"),
-
 });
 
-export type LabSchema = z.infer<typeof labSchema>;
+export type LabTechnicianSchema = z.infer<typeof labTechnicianSchema>;
