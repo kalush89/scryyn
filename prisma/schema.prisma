@@ -1,0 +1,380 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ================================
+// ENUMS
+// ================================
+
+enum Role {
+  SUPERADMIN
+  STAFF
+  SUPPORT
+  DP_MANAGER
+  DP_STAFF
+  PATIENT
+}
+
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  UNAVAILABLE
+  DISCONTINUED
+}
+
+enum ReviewStatus {
+  VISIBLE
+  HIDDEN
+}
+
+enum NotificationType {
+  BOOKING_UPDATE
+  TEST_RESULT
+  PROMOTION
+  SYSTEM
+  REMINDER
+}
+
+enum NotificationRecipientType {
+  SUPERADMIN
+  STAFF
+  SUPPORT
+  DP_MANAGER
+  DP_STAFF
+  USER
+}
+
+enum NotificationStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+// ================================
+// BASE USER
+// ================================
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  phone      String?
+  password   String
+  firstName  String
+  lastName   String
+  avatarURL  String?
+  role       Role
+  isActive   Boolean  @default(true)
+
+  lastLogin  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // 1:1 Relationships (Inheritance Simulation)
+  admin                      Admin?
+  patient                    Patient?
+  diagnosticProviderStaff    DiagnosticProviderStaff?
+
+  // 1:M Relationships
+  accounts      Account[]
+  dependents    Dependent[]
+  bookings      Booking[]
+  dpReviews     DiagnosticProviderReview[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// ================================
+// ADMIN
+// ================================
+
+model Admin {
+  id        String   @id @default(cuid())
+  // Inherits from BaseUser (1:1 relation)
+  baseUser  User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  // Admin-specific fields
+  // role field already set in BaseUser (should be STAFF or SUPERADMIN)
+  
+  // Relationships
+  notifications Notification[]
+
+  @@map("admins")
+}
+
+// ================================
+// PATIENTS
+// ================================
+
+model Patient {
+  id            String   @id @default(cuid())
+  user          User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  // User-specific fields
+  dateOfBirth   DateTime?
+  sex           Sex // Optional: "MALE", "FEMALE"
+
+  @@map("patients")
+}
+
+// ================================
+// ACCOUNT
+// ================================
+
+model Account {
+  id                 String  @id @default(cuid())
+  type               String
+  provider           String  
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+ 
+ //Relationships
+  userId             String  @map("user_id")
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+ 
+  @@map("accounts")
+}
+
+// ================================
+// DEPENDENTS (Children / Others)
+// ================================
+
+model Dependent {
+  id            String      @id @default(cuid())
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime
+  sex           Sex       // "MALE", "FEMALE", etc.
+  relationship  String?      // e.g., "Child", "Parent", "Spouse"
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  //Relationships
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  bookings      Booking[]
+
+  @@map("dependants")
+}
+
+// ================================
+// DIAGNOSTIC PROVIDERS 
+// ================================
+
+model DiagnosticProvider {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  phone         String
+  logoURL       String?
+  address       String
+  latitude      String?         // Geo Location
+  longitude     String?        // Geo Location
+  city              String
+  state             String
+  rcNumber          String          // CAC Registration Number (Mandatory)
+  rrbnLicenseNumber   String?      // Radiographers Registration Board of Nigeria
+  mlscnLicenseNumber  String?      // Medical Laboratory Science Council of Nigeria
+  verified          Boolean          @default(false)
+  bankAccountNumber String?
+  bankName          String?
+  paymentMethod     String?          // e.g. Paystack ID, Bank Transfer
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  //Relationships
+  dpStaff       DiagnosticProviderStaff[]
+  dpOfferings   DiagnosticProviderTestOffering[]
+  bookings      Booking[]
+  dpReviews     DiagnosticProviderReview[]
+  
+
+  @@map("diagnostic_providers")
+}
+
+// ================================
+// DIAGNOSTIC PROVIDER STAFF
+// ================================
+
+model DiagnosticProviderStaff {
+  id        String   @id @default(cuid())
+  user  User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  // DP Staff-specific fields
+  identificationType String?
+  identificationNumber    String?
+  
+  dpId          String
+  diagnosticProvider DiagnosticProvider @relation(fields: [dpId], references: [id])
+
+  // Relationships
+  notifications Notification[]
+  @@map("diagnostic_provider_staff")
+}
+
+// ================================
+// GENERIC TEST CATALOG
+// ================================
+
+model Test {
+  id            String        @id @default(cuid())
+  name          String
+  description   String?
+  preparation   String?
+  duration      String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  //Relationships
+  dpOfferings     DiagnosticProviderTestOffering[]
+
+  @@map("tests")
+}
+
+// ================================
+// DIAGNOSTIC PROVIDER TEST OFFERINGS
+// ================================
+
+model DiagnosticProviderTestOffering {
+  id              String             @id @default(cuid())
+  price           Float
+  availability    AvailabilityStatus @default(AVAILABLE)
+  notes           String?
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  //Relationships
+  dpId           String
+  diagnosticProvider    DiagnosticProvider      @relation(fields: [dpId], references: [id])
+
+  testId          String
+  test            Test               @relation(fields: [testId], references: [id])
+  
+  bookings        Booking[]
+
+  @@map("diagnostic_provider_test_offerings")
+}
+
+// ================================
+// BOOKINGS
+// ================================
+
+model Booking {
+  id                String           @id @default(cuid())
+  status            BookingStatus    @default(PENDING)
+  scheduledDate     DateTime
+  resultUrl         String?
+  notes             String?          @db.Text
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  //Relationships
+  userId            String
+  user              User             @relation(fields: [userId], references: [id])
+
+  dependentId       String?
+  dependent         Dependent?       @relation(fields: [dependentId], references: [id])
+
+  dpId             String
+  diagnosticProvider    DiagnosticProvider        @relation(fields: [dpId], references: [id])
+
+  dpTestOfferingId String
+  diagnosticProviderTestOffering   DiagnosticProviderTestOffering  @relation(fields: [dpTestOfferingId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+
+  @@map("bookings")
+}
+
+// ================================
+// DIAGNOSTIC PROVIDER REVIEWS
+// ================================
+
+model DiagnosticProviderReview {
+  id          String       @id @default(cuid())
+  rating      Int          // 1 to 5 stars
+  comment     String?
+  status      ReviewStatus @default(VISIBLE)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  //Relationships
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+
+  dpId       String
+  diagnosticProvider      DiagnosticProvider       @relation(fields: [dpId], references: [id])
+
+  @@map("diagnostic_provider_reviews")
+}
+
+// ================================
+// NOTIFICATIONS
+// ================================
+
+model Notification {
+  id                String                     @id @default(cuid())
+  title             String
+  message           String
+  type              NotificationType
+  recipientType     NotificationRecipientType
+
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  // Relationships
+  userId            String?                    // User (Patients)
+  user              User?                      @relation(fields: [userId], references: [id])
+
+  dpStaffId         String?                    // Lab Staff
+  diagnosticProviderStaff        DiagnosticProviderStaff?              @relation(fields: [dpStaffId], references: [id])
+
+  adminId           String?                    // Admin
+  admin             Admin?                     @relation(fields: [adminId], references: [id])
+
+  status            NotificationStatus         @default(SENT)
+  readAt            DateTime?
+
+@@map("notifications")  
+}
+
