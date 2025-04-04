@@ -29,10 +29,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   providers: [
     // Google OAuth Provider
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_CLIENT_ID || (() => { throw new Error("GOOGLE_CLIENT_ID is not defined") })(),
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || (() => { throw new Error("GOOGLE_CLIENT_SECRET is not defined") })(),
-    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
 
     // Custom Credentials Provider
     CredentialsProvider({
@@ -161,7 +161,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   pages: {
-    signIn: "/app/sign-in", // Custom sign-in page
+    signIn: "/app/login", // Custom sign-in page
     error: "/app/error", // Custom error page
   },
 
@@ -192,3 +192,4 @@ declare module "next-auth" {
     };
   }
 }
+

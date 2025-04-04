@@ -168,20 +168,6 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
         <p className="text-red-500 text-sm">{errors.diagnosticProvider.rcNumber.message}</p>
       )}
 
-      {/* <div className="flex gap-4">
-        <div className="flex-1">
-          <Input placeholder="RRBN License Number" {...register("diagnosticProvider.rrbnLicenseNumber")} />
-          {errors.diagnosticProvider?.rrbnLicenseNumber && (
-            <p className="text-red-500 text-sm">{errors.diagnosticProvider.rrbnLicenseNumber.message}</p>
-          )}
-        </div>
-        <div className="flex-1">
-          <Input placeholder="MLSCN License Number" {...register("diagnosticProvider.mlscnLicenseNumber")} />
-          {errors.diagnosticProvider?.mlscnLicenseNumber && (
-            <p className="text-red-500 text-sm">{errors.diagnosticProvider.mlscnLicenseNumber.message}</p>
-          )}
-        </div>
-      </div> */}
 
       <div className="flex justify-end gap-2">
         <Button onClick={handleNext}>Next</Button>

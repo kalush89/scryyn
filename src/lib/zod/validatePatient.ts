@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 // Validation schema for individuals
 export const patientSchema = z.object({
     email: z
@@ -21,11 +21,11 @@ export const patientSchema = z.object({
         .string()
         .max(255, "Address must be at most 255 characters long")
         .optional(),
-    firstname: z
+    firstName: z
         .string()
         .min(3, "First name must have at least 3 characters long")
         .max(15, "First name must be at most 15 characters long"),
-    lastname: z
+    lastName: z
         .string()
         .min(3, "First name must have at least 3 characters long")
         .max(15, "First name must be at most 15 characters long"),
@@ -34,12 +34,8 @@ export const patientSchema = z.object({
         .nonempty("The sex field is required"),
     dateOfBirth: z
         .string()
-        .nonempty("Date of birth is required")
-        .regex(/^\d{4}-\d{2}-\d{2}$/,"Invalid format. Date of birth must be in the format YYYY-MM-DD.")
         .refine((dob) => {
             const parsedDate = new Date(dob);
             return !isNaN(parsedDate.getTime()); // Check if the date is valid
           }, "Invalid date value")
 });
-
-export type PatientSchema = z.infer<typeof patientSchema>;

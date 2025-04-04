@@ -43,11 +43,6 @@ export default function StepperForm() {
         latitude: "",
         longitude: "",
         rcNumber: "",
-        // rrbnLicenseNumber: "",
-        // mlscnLicenseNumber: "",
-        // bankAccountNumber: "",
-        // bankName: "",
-        // paymentMethod: "",
       },
       manager: {
         email: "",
@@ -56,10 +51,6 @@ export default function StepperForm() {
         lastName: "",
         phone: "",
       },
-      // staffInfo: {
-      //   identificationType: "",
-      //   identificationNumber: "",
-      // },
     },
   });
 
@@ -80,9 +71,9 @@ export default function StepperForm() {
         return null;
     }
   };
-console.log("Form errors:", methods.formState.errors);
+// console.log("Form errors:", methods.formState.errors);
   const handleSubmit = async (data: RegistrationFormData) => {
-    console.log("Form submitted with data:", data);
+    // console.log("Form submitted with data:", data);
     
     try {
       const response = await fetch("/api/diagnostics-provider", {

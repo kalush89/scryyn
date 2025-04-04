@@ -57,11 +57,6 @@ export async function POST(req: NextRequest) {
         city: diagnosticProvider.city,
         state: diagnosticProvider.state,
         rcNumber: diagnosticProvider.rcNumber,
-        // rrbnLicenseNumber: diagnosticProvider.rrbnLicenseNumber,
-        // mlscnLicenseNumber: diagnosticProvider.mlscnLicenseNumber,
-        // bankAccountNumber: diagnosticProvider.bankAccountNumber,
-        // bankName: diagnosticProvider.bankName,
-        // paymentMethod: diagnosticProvider.paymentMethod,
       },
     });
 
@@ -76,13 +71,10 @@ export async function POST(req: NextRequest) {
         firstName: manager.firstName,
         lastName: manager.lastName,
         phone: manager.phone,
-        // avatarURL: manager.avatarURL,
         role: 'DP_MANAGER',
         diagnosticProviderStaff: {
           create: {
             dpId: newProvider.id,
-            // identificationType: staffInfo.identificationType,
-            // identificationNumber: staffInfo.identificationNumber,
           },
         },
       },

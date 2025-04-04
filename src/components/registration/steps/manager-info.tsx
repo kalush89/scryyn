@@ -12,13 +12,7 @@ type FormData = {
         firstName: string;
         lastName: string;
         phone: string;
-        // avatarURL: string;
     },
-
-    // staffInfo: {
-    //     identificationType: string;
-    //     identificationNumber: string;
-    // }
 };
 
 export const ManagerInfo = ({ nextStep, prevStep }: { nextStep: () => void, prevStep: () => void }) => {
@@ -79,25 +73,6 @@ export const ManagerInfo = ({ nextStep, prevStep }: { nextStep: () => void, prev
             <p className="text-gray-500 text-sm">
                 Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number and a special character.
             </p>
-            {/* <Input placeholder="Avatar URL" {...register("manager.avatarURL")} />
-            {errors.manager?.avatarURL?.message && (
-                <p className="text-red-500 text-sm">{errors.manager.avatarURL.message.toString()}</p>
-            )} */}
-
-            {/* <div className="flex gap-4">
-                <div className="flex-1">
-                    <Input placeholder="Identification Type" {...register("staffInfo.identificationType")} />
-                    {errors.staffInfo?.identificationType?.message && (
-                        <p className="text-red-500 text-sm">{errors.staffInfo.identificationType.message.toString()}</p>
-                    )}
-                </div>
-                <div className="flex-1">
-                    <Input placeholder="Identification Number" {...register("staffInfo.identificationNumber")} />
-                    {errors.staffInfo?.identificationNumber?.message && (
-                        <p className="text-red-500 text-sm">{errors.staffInfo.identificationNumber.message.toString()}</p>
-                    )}
-                </div>
-            </div> */}
 
             <div className="flex justify-between gap-2">
                 <Button variant="outline" onClick={handlePrev}>Back</Button>
