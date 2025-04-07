@@ -17,10 +17,6 @@ export const patientSchema = z.object({
         .regex(/[a-z]/, "Password must contain at least one lowercase letter")
         .regex(/\d/, "Password must contain at least one number")
         .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character"),
-    address: z
-        .string()
-        .max(255, "Address must be at most 255 characters long")
-        .optional(),
     firstName: z
         .string()
         .min(3, "First name must have at least 3 characters long")
@@ -29,9 +25,9 @@ export const patientSchema = z.object({
         .string()
         .min(3, "First name must have at least 3 characters long")
         .max(15, "First name must be at most 15 characters long"),
-    sex: z
+    gender: z
         .string()
-        .nonempty("The sex field is required"),
+        .nonempty("The gender field is required"),
     dateOfBirth: z
         .string()
         .refine((dob) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { patientSchema } from "@/lib/zod/validatePatient";
@@ -9,59 +9,55 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
-import { CalendarIcon } from "lucide-react";
-
-import { days, months, years } from "@/utils/calender";
-
-
+import { Separator } from "../ui/separator";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { months, years } from "@/utils/calender";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { EyeIcon, EyeOffIcon } from "lucide-react"; // Import icons for visibility toggle
+import { set } from "date-fns";
 
 type PatientFormData = z.infer<typeof patientSchema>;
 
 export default function PatientRegistrationForm() {
-  const methods = useForm<PatientFormData>({
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [serverError, setServerError] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
       phone: "",
-      address: "",
       password: "",
-      sex: "",
+      gender: "",
       dateOfBirth: "", // Ensure this matches the schema type
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = methods;
+  const { setValue, watch, handleSubmit, formState: { errors } } = form;
 
-  const onSubmit = async (data: PatientFormData) => {
-    try {
-      console.log("Submitting patient data:", data);
-      // Perform API call to register the patient
-    } catch (error) {
-      console.error("Error registering patient:", error);
+  // Local state for day, month, and year
+  const [day, setDay] = useState<number | null>(null);
+  const [month, setMonth] = useState<number | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+  const [days, setDays] = useState<number[]>([]); // Dynamically update days based on month and year
+
+  // Update the number of days based on the selected month and year
+  useEffect(() => {
+    if (month && year) {
+      const daysInMonth = new Date(year, month, 0).getDate(); // Get the number of days in the selected month
+      setDays(Array.from({ length: daysInMonth }, (_, i) => i + 1)); // Create an array of days
     }
-  };
-
- // Local state for day, month, and year
- const [day, setDay] = useState<number | null>(null);
- const [month, setMonth] = useState<number | null>(null);
- const [year, setYear] = useState<number | null>(null);
- const [days, setDays] = useState<number[]>([]); // Dynamically update days based on month and year
-
-// Update the number of days based on the selected month and year
-useEffect(() => {
-  if (month && year) {
-    const daysInMonth = new Date(year, month, 0).getDate(); // Get the number of days in the selected month
-    setDays(Array.from({ length: daysInMonth }, (_, i) => i + 1)); // Create an array of days
-  }
-}, [month, year]);
+  }, [month, year]);
 
   // Combine day, month, and year into a single string
   useEffect(() => {
@@ -71,83 +67,158 @@ useEffect(() => {
     }
   }, [day, month, year, setValue]);
 
+  const onSubmit = async (data: PatientFormData) => {
+    try {
+      console.log("Submitting patient data:", data);
+      setIsLoading(true);
+      setServerError(null); 
+
+      const response = await fetch("/api/patient", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      
+
+      if (result.error) {
+        setServerError(result.error);
+      } else {
+        console.log("Patient registered successfully:", result);
+        // Optionally redirect or show success message
+        // window.location.href = "/login";
+      }
+    } catch (error) {
+      console.error("Error registering patient:", error);
+      setIsLoading(false);
+      setServerError("An unexpected error occurred. Please try again.");
+    } finally{
+      setIsLoading(false);
+    }
+
+  };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 space-y-6">
+    <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Patient Registration</CardTitle>
-          <CardDescription>Please fill out the form below to register as a patient.</CardDescription>
+          <CardTitle>Register</CardTitle>
+          <CardDescription>Book Tests. Track Your Health. It's that easy..</CardDescription>
         </CardHeader>
+        <Separator />
         <CardContent>
-          <FormProvider {...methods}>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="w-full max-w-3xl mx-auto space-y-6"
-            >
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <Input placeholder="First Name" {...register("firstName")} />
-                    {errors.firstName && (
-                      <p className="text-red-500 text-sm">
-                        {errors.firstName.message?.toString()}
-                      </p>
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  {/* First Name */}
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+
+                        <FormControl>
+                          <Input placeholder="First Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <Input placeholder="Last Name" {...register("lastName")} />
-                    {errors.lastName && (
-                      <p className="text-red-500 text-sm">
-                        {errors.lastName.message?.toString()}
-                      </p>
-                    )}
-                  </div>
+                  />
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <Input placeholder="Email" {...register("email")} />
-                    {errors.email && (
-                      <p className="text-red-500 text-sm">
-                        {errors.email.message?.toString()}
-                      </p>
+                <div className="flex-1">
+                  {/* Last Name */}
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+
+                        <FormControl>
+                          <Input placeholder="Last Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <Input placeholder="Phone" {...register("phone")} />
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm">
-                        {errors.phone.message?.toString()}
-                      </p>
-                    )}
-                  </div>
+                  />
                 </div>
+              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
 
-                <Input
-                  placeholder="Password"
-                  type="password"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm">
-                    {errors.password.message?.toString()}
-                  </p>
+                        <FormControl>
+                          <Input placeholder="Email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex-1">
+                  {/* Phone */}
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+
+                        <FormControl>
+                          <Input placeholder="Phone" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              {/* Password */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+
+                    <FormControl>
+                    <div className="relative">
+                      <Input type={showPassword ? "text" : "password"} placeholder="Password" {...field} />
+                                  <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)} // Toggle visibility
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="w-5 h-5" aria-hidden="true" />
+                        ) : (
+                          <EyeIcon className="w-5 h-5" aria-hidden="true" />
+                        )}
+                      </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
-                <Input placeholder="Address" {...register("address")} />
-                {errors.address && (
-                  <p className="text-red-500 text-sm">
-                    {errors.address.message?.toString()}
-                  </p>
-                )}
-
-              {/* Date of Birth Dropdowns */}
-              <div className="flex gap-4">
-                  
-                  
+              {/* Date of Birth */}
+              <FormField
+                control={form.control}
+                name="dateOfBirth"
+                render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
+                <div className="flex flex-col md:flex-row gap-1">
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700">Year</label>
+
                     <Select onValueChange={(value) => setYear(parseInt(value))}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Year" />
@@ -161,9 +232,8 @@ useEffect(() => {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700">Month</label>
+
                     <Select onValueChange={(value) => setMonth(parseInt(value))}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Month" />
@@ -177,9 +247,8 @@ useEffect(() => {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700">Day</label>
+
                     <Select onValueChange={(value) => setDay(parseInt(value))}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Day" />
@@ -194,36 +263,72 @@ useEffect(() => {
                     </Select>
                   </div>
                 </div>
-                {errors.dateOfBirth && (
-                  <p className="text-red-500 text-sm">
-                    {errors.dateOfBirth.message?.toString()}
-                  </p>
+                <FormMessage />
+              </FormItem>
                 )}
-                  
-                  <Select
-                      onValueChange={(value) => setValue("sex", value)}
-                    >
+              />
+
+              {/* Gender */}
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select onValueChange={(value) => field.onChange(value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Sex" />
+                        <SelectValue placeholder="Gender" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.sex && (
-                      <p className="text-red-500 text-sm">{errors.sex.message}</p>
-                    )}
-                  
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="flex justify-between gap-2">
-                  <Button type="submit">Sign up</Button>
-                </div>
+              {/* Server Error Message */}
+              {serverError && (
+                <p className="text-sm text-red-500 text-left">{serverError}</p>
+              )}
+
+              <div className="flex flex-col gap-3">
+                {/* Submit Button */}
+                <Button type="submit" size="wide-lg" disabled={isLoading}>
+                  {isLoading ? "Signing up..." : "Sign up"}
+                </Button>
+
+
               </div>
             </form>
-          </FormProvider>
+          </Form>
+          {/* OR Separator */}
+          <div className="flex items-center gap-2 mt-5 mb-5">
+            <div className="flex-1 h-px bg-muted"></div>
+            <span className="text-sm text-muted-foreground">OR</span>
+            <div className="flex-1 h-px bg-muted"></div>
+          </div>
+          <Button
+            variant="outline"
+            size="wide-lg"
+            onClick={() => signIn("google")}
+          >
+            Sign up with Google
+          </Button>
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{" "}
+            <Link href="#" className="underline underline-offset-4">
+              Login
+            </Link>
+          </div>
+
         </CardContent>
       </Card>
     </div>
   );
 }
+
+
+
+

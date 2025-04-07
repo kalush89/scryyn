@@ -45,20 +45,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials) return null;
         // Validate credentials using zod
         const parsedCredentials = z
-        .object({ email: z.string().email(), password: z.string().min(6) })
+        .object({ 
+          email: z.string({ required_error: "Enter an email address" }).email(), 
+          password: z.string({ required_error: "Enter a password" }).min(6) 
+        })
         .safeParse(credentials);
         
-        if (parsedCredentials.success) {
+        if (!parsedCredentials.success) {
+          return null; // Validation failed
+        }
           const { email, password } = parsedCredentials.data;
           const user = await getUser(email);
           if (!user) {
-            console.log('User not found');
             return null;
           }
           // Compare provided password with stored hashed password
           const passwordsMatch = await bcryptjs.compare(password, user.password);
  
-          if (passwordsMatch) {
+          if (!passwordsMatch) {
+            return null; // Invalid password
+          }
             // Return user object if credentials are valid
             return {
               id: user.id,
@@ -69,11 +75,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               role: user.role, // assuming role exists in your User model
               avatarURL: user.avatarURL,
             };
-          }
-        }
+          
+        
  
-        console.log('Invalid credentials');
-        return null;
+        
+        
       },
     }),
   ],

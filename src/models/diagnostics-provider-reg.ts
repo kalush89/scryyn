@@ -1,4 +1,4 @@
-export type RegistrationFormData = {
+export interface RegistrationFormData {
     diagnosticProvider: {
       name: string
       email: string

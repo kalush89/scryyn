@@ -70,10 +70,7 @@ enum NotificationStatus {
   READ
 }
 
-enum Sex {
-  MALE
-  FEMALE
-}
+
 
 // ================================
 // BASE USER
@@ -88,6 +85,10 @@ model User {
   lastName   String
   avatarURL  String?
   role       Role
+  address    String?
+  city       String?
+  state      String?
+  country    String?
   isActive   Boolean  @default(true)
 
   lastLogin  DateTime?
@@ -114,7 +115,7 @@ model User {
 // ================================
 
 model Admin {
-  id        String   @id @default(cuid())
+  id        String   @id @map("id")
   // Inherits from BaseUser (1:1 relation)
   baseUser  User @relation(fields: [id], references: [id], onDelete: Cascade)
 
@@ -132,12 +133,12 @@ model Admin {
 // ================================
 
 model Patient {
-  id            String   @id @default(cuid())
+  id            String   @id @map("id")
   user          User @relation(fields: [id], references: [id], onDelete: Cascade)
 
   // User-specific fields
   dateOfBirth   DateTime?
-  sex           Sex // Optional: "MALE", "FEMALE"
+  gender        String?// Optional: "MALE", "FEMALE"
 
   @@map("patients")
 }
@@ -177,7 +178,7 @@ model Dependent {
   firstName     String
   lastName      String
   dateOfBirth   DateTime
-  sex           Sex       // "MALE", "FEMALE", etc.
+  gender        String       // "MALE", "FEMALE", etc.
   relationship  String?      // e.g., "Child", "Parent", "Spouse"
 
   createdAt     DateTime     @default(now())
@@ -232,7 +233,7 @@ model DiagnosticProvider {
 // ================================
 
 model DiagnosticProviderStaff {
-  id        String   @id @default(cuid())
+  id        String   @id @map("id")
   user  User @relation(fields: [id], references: [id], onDelete: Cascade)
 
   // DP Staff-specific fields
