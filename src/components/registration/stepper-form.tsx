@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DiagnosticsProviderInfo } from "./steps/diagnostics-provider-info";
@@ -9,10 +9,11 @@ import { ManagerInfo } from "./steps/manager-info";
 import { ReviewAndSubmit } from "./steps/review-and-submit";
 import { diagnosticProviderRegistrationSchema } from "@/lib/zod/diagnosticProviderRegistration";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
-// import { Progress } from "../ui/progress"; // Remove unused import
+import { CheckCircle, User, ClipboardList } from "lucide-react"; // Import icons
+import { BriefcaseMedicalIcon} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RegistrationFormData } from "@/models/diagnostics-provider-reg";
-
+import { Separator } from "../ui/separator";
 
 const steps = [
   { id: 1, title: "Diagnostic Provider Information", description: "Provide details about the diagnostic provider." },
@@ -27,6 +28,8 @@ export default function StepperForm() {
     //diagnosticProviderRegistrationSchema.pick({ diagnosticProvider: true }),
     diagnosticProviderRegistrationSchema, // Full schema for review and submit
   ];
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -53,7 +56,7 @@ export default function StepperForm() {
       },
     },
   });
-
+console.log("the current step is", currentStep);
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
@@ -66,36 +69,39 @@ export default function StepperForm() {
       // case 3:
       //   return <DPBankingInfo nextStep={nextStep} prevStep={prevStep} />;
       case 3:
-        return <ReviewAndSubmit prevStep={prevStep} />;
+        return <ReviewAndSubmit prevStep={prevStep} isSubmitting={isSubmitting}/>;
       default:
         return null;
     }
   };
-// console.log("Form errors:", methods.formState.errors);
-  const handleSubmit = async (data: RegistrationFormData) => {
-    // console.log("Form submitted with data:", data);
-    
-    try {
-      const response = await fetch("/api/diagnostics-provider", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Response:", result);
-        // Success toast or redirect
-      } else {
-        const error = await response.json();
-        console.error("Error:", error);
-        // Error toast
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
+  
+
+
+const handleSubmit = async (data: RegistrationFormData) => {
+  setIsSubmitting(true); // Set loading state
+  try {
+    const response = await fetch("/api/diagnostics-provider", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Response:", result);
+      // Success toast or redirect
+    } else {
+      const error = await response.json();
+      console.error("Error:", error);
+      // Error toast
     }
-  };
-
+  } catch (error) {
+    console.error("Submission error:", error);
+  } finally {
+    setIsSubmitting(false); // Reset loading state
+  }
+};
   return (
     <div className="w-full max-w-3xl mx-auto p-4 space-y-6">
       <ProgressIndicator currentStep={currentStep} />
@@ -105,13 +111,16 @@ export default function StepperForm() {
           <CardTitle>{steps[currentStep - 1]?.title}</CardTitle>
           <CardDescription>{steps[currentStep - 1]?.description}</CardDescription>
         </CardHeader>
+        <Separator />
         <CardContent>
           <FormProvider {...methods}>
             <form
               onSubmit={methods.handleSubmit(handleSubmit)}
               className="w-full max-w-3xl mx-auto space-y-6"
             >
-              {renderStepComponent()}
+             
+    {renderStepComponent()}
+ 
             </form>
           </FormProvider>
         </CardContent>
@@ -120,26 +129,52 @@ export default function StepperForm() {
   );
 };
 
+// function StepContent({ children, currentStep }: { children: React.ReactNode; currentStep: number }) {
+//   return (
+//     <div className="relative overflow-hidden w-full">
+//       <div
+//         className="flex transition-transform duration-500 ease-in-out"
+//         style={{
+//           transform: `translateX(-${(currentStep - 1) * 100}%)`, // Shift the steps horizontally
+//         }}
+//       >
+//         {React.Children.map(children, (child) => (
+//           <div className="w-full flex-shrink-0">{child}</div> // Each step takes full width
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+const stepIcons = {
+  1: <BriefcaseMedicalIcon className="w-6 h-6" />, // Icon for Step 1
+  2: <User className="w-6 h-6" />, // Icon for Step 2
+  3: <CheckCircle className="w-6 h-6" />, // Icon for Step 3
+};
+
 function ProgressIndicator({ currentStep }: { currentStep: number }) {
   return (
     <div className="flex justify-between items-center w-full">
-      {steps.map((step, index) => (
+      {steps.map((step) => (
         <div key={step.id} className="flex-1 flex flex-col items-center">
           <div
             className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
+              "rounded-full flex items-center justify-center font-medium",
               currentStep === step.id
-                ? 'bg-primary text-white'
+                ? "bg-primary text-white w-14 h-14 border-2 border-green-900"
                 : currentStep > step.id
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-300 text-gray-600'
+                ? "bg-green-500 text-white w-10 h-10"
+                : "bg-gray-300 text-gray-600 w-10 h-10"
             )}
           >
-            {step.id}
+            {stepIcons[step.id as keyof typeof stepIcons]} {/* Replace step.id with the corresponding icon */}
           </div>
-          <div className="text-xs text-center mt-1">{step.title}</div>
+          {/* Optional: Add step title below the icon */}
+          {/* <div className="text-xs text-center mt-1">{step.title}</div> */}
         </div>
       ))}
     </div>
-  )
+  );
 }

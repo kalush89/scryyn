@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { login } from "@/app/actions";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,7 +30,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export function PatientLoginForm({ className, ...props }: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
@@ -84,8 +85,8 @@ export function PatientLoginForm({ className, ...props }: React.ComponentProps<"
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>Enter your email below to login.</CardDescription>
+          <CardTitle>login to your account</CardTitle>
+          <CardDescription>enter your email and password below to login.</CardDescription>
         </CardHeader>
         <Separator />
         <CardContent>
@@ -126,7 +127,7 @@ export function PatientLoginForm({ className, ...props }: React.ComponentProps<"
 
               {/* Submit Button */}
               <Button type="submit" size="wide-lg" disabled={isLoading}>
-    {isLoading ? "Logging in..." : "Login"}
+    {isLoading ? "logging in..." : "login"}
   </Button>
               
             </form>
@@ -135,13 +136,13 @@ export function PatientLoginForm({ className, ...props }: React.ComponentProps<"
           {/* OR Separator */}
           <div className="flex items-center gap-2 mt-5 mb-5">
             <div className="flex-1 h-px bg-muted"></div>
-            <span className="text-sm text-muted-foreground">OR</span>
+            <span className="text-xl text-muted-foreground">or</span>
             <div className="flex-1 h-px bg-muted"></div>
           </div>
 
           {/* Login with Google */}
-          <Button variant="outline" size="wide-lg" onClick={() => signIn("google")}>
-            Login with Google
+          <Button variant="outline" size="wide-lg" onClick={() => login("google")}>
+            login with Google
           </Button>
 
           {/* Links */}
@@ -149,16 +150,6 @@ export function PatientLoginForm({ className, ...props }: React.ComponentProps<"
             Don&apos;t have an account?{" "}
             <Link href="#" className="underline underline-offset-4">
               Sign up
-            </Link>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Are you an admin?{" "}
-            <Link
-              href="/login?type=admin"
-              className="flex items-center justify-center gap-2 text-primary font-medium hover:text-primary-dark transition-colors text-sm"
-            >
-              <span>Login here</span>
-              <LogInIcon className="w-5 h-5" />
             </Link>
           </div>
         </CardContent>

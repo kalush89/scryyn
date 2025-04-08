@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('SUPERADMIN', 'STAFF', 'SUPPORT', 'DP_MANAGER', 'DP_STAFF', 'USER');
+CREATE TYPE "Role" AS ENUM ('SUPERADMIN', 'STAFF', 'SUPPORT', 'DP_MANAGER', 'DP_STAFF', 'PATIENT');
 
 -- CreateEnum
 CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED', 'CANCELLED');
@@ -20,38 +20,43 @@ CREATE TYPE "NotificationRecipientType" AS ENUM ('SUPERADMIN', 'STAFF', 'SUPPORT
 CREATE TYPE "NotificationStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
 
 -- CreateTable
-CREATE TABLE "admins" (
+CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "phone" TEXT,
+    "password" TEXT,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "avatarURL" TEXT,
-    "role" "Role" NOT NULL DEFAULT 'STAFF',
+    "role" "Role" NOT NULL,
+    "address" TEXT,
+    "city" TEXT,
+    "state" TEXT,
+    "country" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "lastLogin" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "emailVerified" TIMESTAMPTZ,
+    "phoneVerified" TIMESTAMPTZ,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admins" (
+    "id" TEXT NOT NULL,
 
     CONSTRAINT "admins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "users" (
+CREATE TABLE "patients" (
     "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "firstName" TEXT NOT NULL,
-    "lastName" TEXT NOT NULL,
-    "avatarURL" TEXT,
-    "role" "Role" NOT NULL DEFAULT 'USER',
-    "phone" TEXT,
     "dateOfBirth" TIMESTAMP(3),
-    "sex" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "gender" TEXT,
 
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "patients_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -78,7 +83,7 @@ CREATE TABLE "dependants" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "dateOfBirth" TIMESTAMP(3) NOT NULL,
-    "sex" TEXT NOT NULL,
+    "gender" TEXT NOT NULL,
     "relationship" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -95,11 +100,11 @@ CREATE TABLE "diagnostic_providers" (
     "phone" TEXT NOT NULL,
     "logoURL" TEXT,
     "address" TEXT NOT NULL,
-    "latitude" DOUBLE PRECISION,
-    "longitude" DOUBLE PRECISION,
+    "latitude" TEXT,
+    "longitude" TEXT,
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
-    "rcNumber" TEXT,
+    "rcNumber" TEXT NOT NULL,
     "rrbnLicenseNumber" TEXT,
     "mlscnLicenseNumber" TEXT,
     "verified" BOOLEAN NOT NULL DEFAULT false,
@@ -115,17 +120,8 @@ CREATE TABLE "diagnostic_providers" (
 -- CreateTable
 CREATE TABLE "diagnostic_provider_staff" (
     "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "firstName" TEXT NOT NULL,
-    "lastName" TEXT NOT NULL,
-    "avatarURL" TEXT,
-    "role" "Role" NOT NULL DEFAULT 'DP_STAFF',
-    "nationalId" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "lastLogin" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "identificationType" TEXT,
+    "identificationNumber" TEXT,
     "dpId" TEXT NOT NULL,
 
     CONSTRAINT "diagnostic_provider_staff_pkey" PRIMARY KEY ("id")
@@ -195,7 +191,7 @@ CREATE TABLE "notifications" (
     "title" TEXT NOT NULL,
     "message" TEXT NOT NULL,
     "type" "NotificationType" NOT NULL,
-    "recipientType" "Role" NOT NULL,
+    "recipientType" "NotificationRecipientType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT,
@@ -208,28 +204,34 @@ CREATE TABLE "notifications" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
-
--- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "accounts_provider_key" ON "accounts"("provider");
-
--- CreateIndex
-CREATE UNIQUE INDEX "accounts_provider_account_id_key" ON "accounts"("provider_account_id");
+CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "diagnostic_providers_email_key" ON "diagnostic_providers"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "diagnostic_provider_staff_email_key" ON "diagnostic_provider_staff"("email");
+CREATE INDEX "bookings_status_idx" ON "bookings"("status");
+
+-- CreateIndex
+CREATE INDEX "bookings_createdAt_idx" ON "bookings"("createdAt");
+
+-- AddForeignKey
+ALTER TABLE "admins" ADD CONSTRAINT "admins_id_fkey" FOREIGN KEY ("id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "patients" ADD CONSTRAINT "patients_id_fkey" FOREIGN KEY ("id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "dependants" ADD CONSTRAINT "dependants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "diagnostic_provider_staff" ADD CONSTRAINT "diagnostic_provider_staff_id_fkey" FOREIGN KEY ("id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "diagnostic_provider_staff" ADD CONSTRAINT "diagnostic_provider_staff_dpId_fkey" FOREIGN KEY ("dpId") REFERENCES "diagnostic_providers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

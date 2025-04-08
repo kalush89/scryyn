@@ -58,22 +58,26 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
       alert("Geolocation is not supported by your browser.");
       return;
     }
-
+  
     setLoadingLocation(true);
-
+  
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
         setValue("diagnosticProvider.latitude", latitude.toString());
         setValue("diagnosticProvider.longitude", longitude.toString());
         setLoadingLocation(false);
-        alert("Location retrieved successfully!");
+
+        // Format accuracy with a comma as a thousand separator
+      const formattedAccuracy = new Intl.NumberFormat().format(parseInt(accuracy.toFixed(0)));
+      alert(`Location retrieved successfully! Accuracy: ${formattedAccuracy} meters`);
       },
       (error) => {
         console.error("Error getting location:", error);
         alert("Unable to retrieve location. Please try again.");
         setLoadingLocation(false);
-      }
+      },
+      { enableHighAccuracy: true }
     );
   };
 
@@ -163,14 +167,14 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
         </Button>
       </div>
 
-      <Input placeholder="RC Number" {...register("diagnosticProvider.rcNumber")} />
+      <Input placeholder="Company RC Number" {...register("diagnosticProvider.rcNumber")} />
       {errors.diagnosticProvider?.rcNumber && (
         <p className="text-red-500 text-sm">{errors.diagnosticProvider.rcNumber.message}</p>
       )}
 
 
       <div className="flex justify-end gap-2">
-        <Button onClick={handleNext}>Next</Button>
+        <Button size="lg" onClick={handleNext}>Next</Button>
       </div>
     </div>
   );

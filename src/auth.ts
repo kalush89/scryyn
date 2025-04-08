@@ -59,8 +59,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!user) {
             return null;
           }
+
+          
           // Compare provided password with stored hashed password
-          const passwordsMatch = await bcryptjs.compare(password, user.password);
+          const passwordsMatch = await bcryptjs.compare(password, user.password!);
  
           if (!passwordsMatch) {
             return null; // Invalid password
@@ -164,7 +166,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
+
+
+    async signIn({ account, profile }) {
+
+      // Check if the user exists
+      const user = await getUser(profile?.email!);
+      if(user) {
+        // User exists, return true to allow sign-in
+        return true;
+      }
+
+      // Create a new user if they don't exist
+      const newUser = await prisma.user.create({
+        data: {
+          firstName: profile?.given_name!,
+          lastName: profile?.family_name!,
+          phone: profile?.phone as string,
+          email: profile?.email!,
+          avatarURL: profile?.picture as string,
+          role: "PATIENT",
+          emailVerified: new Date(),
+        },
+      });
+
+      const newAccount = await prisma.account.create({
+        data:{
+         // user: { connect: { id: newUser.id } },
+          userId: newUser?.id, // This is not needed if you are using the Prisma adapter
+          provider: account?.provider!,
+          type: account?.type!,
+          providerAccountId: account?.providerAccountId!,
+          access_token: account?.access_token,
+          refresh_token: account?.refresh_token,
+          expires_at: account?.expires_at,
+          token_type: account?.token_type,
+          scope: account?.scope,
+          id_token: account?.id_token,
+        },
+      });
+
+      const newPatient = await prisma.patient.create({
+        data: {
+          id: newUser.id,
+          dateOfBirth: profile?.birthdate,
+          gender: profile?.gender,
+        },
+        
+      });
+      
+      return true;
+    },
+
   },
+
+  
 
   pages: {
     signIn: "/app/login", // Custom sign-in page

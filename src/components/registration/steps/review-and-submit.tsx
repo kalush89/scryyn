@@ -2,15 +2,17 @@
 
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
-export const ReviewAndSubmit = ({ prevStep }: { prevStep: () => void}) => {
+export const ReviewAndSubmit = ({ prevStep, isSubmitting }: { prevStep: () => void, isSubmitting: boolean}) => {
   const { getValues } = useFormContext();
-
+  //const [isSubmitting, setIsSubmitting] = usesState(false);
   // Retrieve all form data
   const formData = getValues();
 
   return (
-    <div className="space-y-6">
+    <>
+    <div className="space-y-4 flex flex-row gap-5">
 
       {/* Display Diagnostic Provider Information */}
       <div className="border p-4 rounded-md">
@@ -34,17 +36,19 @@ export const ReviewAndSubmit = ({ prevStep }: { prevStep: () => void}) => {
         <p><strong>Email:</strong> {formData.manager?.email}</p>
         <p><strong>Phone:</strong> {formData.manager?.phone}</p>
       </div>
+      </div>
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
-        <Button variant="secondary" onClick={prevStep}>
+        <Button size="lg" variant="outline"  onClick={prevStep}>
           Back
         </Button>
-        <Button type="submit" >
-          Submit
+        <Button size="lg" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit"}
         </Button>
+       
       </div>
-    </div>
+    </>
   );
 };
 

@@ -22,7 +22,7 @@ import { months, years } from "@/utils/calender";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react"; // Import icons for visibility toggle
-import { set } from "date-fns";
+import { login } from "@/app/actions";
 
 type PatientFormData = z.infer<typeof patientSchema>;
 
@@ -312,7 +312,7 @@ export default function PatientRegistrationForm() {
           <Button
             variant="outline"
             size="wide-lg"
-            onClick={() => signIn("google")}
+            onClick={() => login("google")}
           >
             Sign up with Google
           </Button>

@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import React from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 type FormData = {
     manager: {
@@ -16,7 +17,7 @@ type FormData = {
 };
 
 export const ManagerInfo = ({ nextStep, prevStep }: { nextStep: () => void, prevStep: () => void }) => {
-
+const [showPassword, setShowPassword] = React.useState(false);
     const {
         register,
         formState: { errors },
@@ -59,14 +60,32 @@ export const ManagerInfo = ({ nextStep, prevStep }: { nextStep: () => void, prev
                     )}
                 </div>
                 <div className="flex-1">
-                    <Input placeholder="Phone" {...register("manager.phone")} />
+                    <Input  placeholder="Phone" {...register("manager.phone")}   />
+                    
                     {errors.manager?.phone?.message && (
                         <p className="text-red-500 text-sm">{errors.manager.phone.message.toString()}</p>
                     )}
                 </div>
             </div>
 
-            <Input placeholder="Password" {...register("manager.password")} />
+            <div className="relative">
+                <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    {...register("manager.password")}
+                />
+                <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                >
+                    {showPassword ? (
+                        <EyeOffIcon className="w-5 h-5" aria-hidden="true" />
+                    ) : (
+                        <EyeIcon className="w-5 h-5" aria-hidden="true" />
+                    )}
+                </button>
+            </div>
             {errors.manager?.password?.message && (
                 <p className="text-red-500 text-sm">{errors.manager.password.message.toString()}</p>
             )}
@@ -75,8 +94,8 @@ export const ManagerInfo = ({ nextStep, prevStep }: { nextStep: () => void, prev
             </p>
 
             <div className="flex justify-between gap-2">
-                <Button variant="outline" onClick={handlePrev}>Back</Button>
-                <Button onClick={handleNext}>Next</Button>
+                <Button size="lg" variant="outline" onClick={handlePrev}>Back</Button>
+                <Button size="lg" onClick={handleNext}>Next</Button>
             </div>
         </div>
     );
