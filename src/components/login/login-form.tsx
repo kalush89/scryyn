@@ -50,7 +50,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     // Set loading state to true at the start of the login process
     setIsLoading(true);
     setServerError(null); // Clear any previous errors
-
+console.log("the data is", data);
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -136,7 +136,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           {/* OR Separator */}
           <div className="flex items-center gap-2 mt-5 mb-5">
             <div className="flex-1 h-px bg-muted"></div>
-            <span className="text-xl text-muted-foreground">OR</span>
+            <span className="text-lg text-muted-foreground">OR</span>
             <div className="flex-1 h-px bg-muted"></div>
           </div>
 

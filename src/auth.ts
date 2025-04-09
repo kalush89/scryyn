@@ -11,6 +11,7 @@ import { User } from '@prisma/client'; // Prisma auto-generates this
 
 // Function to fetch a user by email from the database
 async function getUser(email: string): Promise<User | undefined> {
+  
   try {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -55,6 +56,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null; // Validation failed
         }
         const { email, password } = parsedCredentials.data;
+        // Fetch user from the database using the provided email
+        
         const user = await getUser(email);
         if (!user) {
           return null;
@@ -110,7 +113,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.avatarURL = ExtendedUser.avatarURL;
       } else if (token.email) {
         // Fetch the user details from the database for existing OAuth users
+        // This is useful for Google sign-in where user details are not passed in the JWT
+        // but we still want to fetch the user from the database
+        // to get the role and other details
+        // Fetch the user from the database using the email in the token
         const dbUser = await getUser(token.email);
+
         if (dbUser) {
           token.id = dbUser.id;
           token.phone = dbUser.phone;
@@ -169,15 +177,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 
     async signIn({ account, profile }) {
-
-      // Check if the user exists
+      // Check if the account is from Google or Facebook
+      if (account?.provider !== "google" && account?.provider !== "facebook") {
+        return true; // Allow sign-in for other providers
+      }
+      // Check if the profile contains the required fields 
+      if (!profile?.email || !profile?.given_name || !profile?.family_name) {
+        return false; // Reject sign-in if required fields are missing
+      }
+      // Check if the account is already linked to a user
+      const existingAccount = await prisma.account.findFirst({
+        where: {
+          provider: account?.provider!,
+          providerAccountId: account?.providerAccountId!,
+        },
+      });
+      if (existingAccount) {
+        // Account already linked to a user, allow sign-in
+        return true;
+      }
+      // Check if the user exists in the database
       const user = await getUser(profile?.email!);
       if (user) {
         // User exists, return true to allow sign-in
         return true;
       }
-
-      // Create a new user if they don't exist
+      // User doesn't exist, create a new user in the database
       const newUser = await prisma.user.create({
         data: {
           firstName: profile?.given_name!,
@@ -189,7 +214,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           emailVerified: new Date(),
         },
       });
-
+      // Create a new account for the user
        await prisma.account.create({
         data: {
           user: { connect: { id: newUser.id } },
@@ -205,16 +230,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id_token: account?.id_token,
         },
       });
-
+      // Create a new patient record for the user
       await prisma.patient.create({
         data: {
           user: { connect: { id: newUser.id } },
-          //id: newUser.id,
           dateOfBirth: profile?.birthdate,
           gender: profile?.gender,
         },
 
       });
+      // Return true to allow sign-in
+      if (process.env.NODE_ENV === "development") {
+        console.log("New user created:", newUser);
+      }
 
       return true;
     },

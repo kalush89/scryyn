@@ -306,7 +306,7 @@ export default function PatientRegistrationForm() {
           {/* OR Separator */}
           <div className="flex items-center gap-2 mt-5 mb-5">
             <div className="flex-1 h-px bg-muted"></div>
-            <span className="text-sm text-muted-foreground">OR</span>
+            <span className="text-lg text-muted-foreground">OR</span>
             <div className="flex-1 h-px bg-muted"></div>
           </div>
           <Button
