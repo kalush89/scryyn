@@ -102,11 +102,11 @@ export default function PatientRegistrationForm() {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
+    <div className="w-full max-w-xl mx-auto px-4 py-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Register</CardTitle>
-          <CardDescription>Book Tests. Track Your Health. It's that easy..</CardDescription>
+          <CardDescription>Book tests. Track your health. It's that easy..</CardDescription>
         </CardHeader>
         <Separator />
         <CardContent>
@@ -318,7 +318,7 @@ export default function PatientRegistrationForm() {
           </Button>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <Link href="#" className="underline underline-offset-4">
+            <Link href="/login" className="underline underline-offset-4">
               Login
             </Link>
           </div>

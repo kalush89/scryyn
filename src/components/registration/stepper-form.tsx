@@ -103,7 +103,7 @@ const handleSubmit = async (data: RegistrationFormData) => {
   }
 };
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 space-y-6">
+    <div className="w-full max-w-xl mx-auto p-4 space-y-6">
       <ProgressIndicator currentStep={currentStep} />
 
       <Card>
@@ -163,9 +163,9 @@ function ProgressIndicator({ currentStep }: { currentStep: number }) {
             className={cn(
               "rounded-full flex items-center justify-center font-medium",
               currentStep === step.id
-                ? "bg-primary text-white w-14 h-14 border-2 border-green-900"
+                ? "bg-yellow-500 text-white w-14 h-14 "
                 : currentStep > step.id
-                ? "bg-green-500 text-white w-10 h-10"
+                ? "bg-primary text-white w-10 h-10"
                 : "bg-gray-300 text-gray-600 w-10 h-10"
             )}
           >

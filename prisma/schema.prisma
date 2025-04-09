@@ -81,8 +81,8 @@ model User {
   email      String   @unique
   phone      String?
   password   String?
-  firstName  String
-  lastName   String
+  firstName  String?
+  lastName   String?
   avatarURL  String?
   role       Role
   address    String?

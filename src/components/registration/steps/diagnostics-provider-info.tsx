@@ -88,27 +88,27 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
 
   return (
     <div className="space-y-4">
-      <Input placeholder="Facility Name" {...register("diagnosticProvider.name")} />
+      <Input placeholder="Facility name" {...register("diagnosticProvider.name")} />
       {errors.diagnosticProvider?.name?.message && (
         <p className="text-red-500 text-sm">{errors.diagnosticProvider.name.message.toString()}</p>
       )}
 
       <div className="flex gap-4">
         <div className="flex-1">
-          <Input placeholder="Facility Email" {...register("diagnosticProvider.email")} />
+          <Input placeholder="Facility email" {...register("diagnosticProvider.email")} />
           {errors.diagnosticProvider?.email?.message && (
             <p className="text-red-500 text-sm">{errors.diagnosticProvider.email.message.toString()}</p>
           )}
         </div>
         <div className="flex-1">
-          <Input placeholder="Facility Phone" {...register("diagnosticProvider.phone")} />
+          <Input placeholder="Facility phone" {...register("diagnosticProvider.phone")} />
           {errors.diagnosticProvider?.phone?.message && (
             <p className="text-red-500 text-sm">{errors.diagnosticProvider.phone.message.toString()}</p>
           )}
         </div>
       </div>
 
-      <Input placeholder="Facility Address" {...register("diagnosticProvider.address")} />
+      <Input placeholder="Facility address" {...register("diagnosticProvider.address")} />
       {errors.diagnosticProvider?.address?.message && (
         <p className="text-red-500 text-sm">{errors.diagnosticProvider.address.message.toString()}</p>
       )}
@@ -117,7 +117,7 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
         <div className="flex-1">
           <Select onValueChange={handleStateChange}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a State" />
+              <SelectValue placeholder="Select a state" />
             </SelectTrigger>
             <SelectContent>
               {Object.keys(stateCityMapping).map((state) => (
@@ -134,7 +134,7 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
         <div className="flex-1">
           <Select onValueChange={handleCityChange} disabled={!selectedState}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a City" />
+              <SelectValue placeholder="Select a city" />
             </SelectTrigger>
             <SelectContent>
               {cities.map((city) => (
@@ -163,11 +163,11 @@ export const DiagnosticsProviderInfo = ({ nextStep }: { nextStep: () => void }) 
           </div>
         </div>
         <Button type="button" onClick={handleGetLocation} disabled={loadingLocation}>
-          {loadingLocation ? "Getting Location..." : "Get Current Location"}
+          {loadingLocation ? "Getting location..." : "Get current location"}
         </Button>
       </div>
 
-      <Input placeholder="Company RC Number" {...register("diagnosticProvider.rcNumber")} />
+      <Input placeholder="Company RC number" {...register("diagnosticProvider.rcNumber")} />
       {errors.diagnosticProvider?.rcNumber && (
         <p className="text-red-500 text-sm">{errors.diagnosticProvider.rcNumber.message}</p>
       )}

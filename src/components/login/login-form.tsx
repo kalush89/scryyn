@@ -46,18 +46,18 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   const handleSubmit = async (data: LoginFormData) => {
     const { email, password } = data;
-  
+
     // Set loading state to true at the start of the login process
     setIsLoading(true);
     setServerError(null); // Clear any previous errors
-  
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
-  
+
       if (result?.error) {
         // Handle specific error codes
         if (result.error === "CredentialsSignin") {
@@ -85,8 +85,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>login to your account</CardTitle>
-          <CardDescription>enter your email and password below to login.</CardDescription>
+          <CardTitle>Login to your account</CardTitle>
+          <CardDescription>Enter your email and password below to login.</CardDescription>
         </CardHeader>
         <Separator />
         <CardContent>
@@ -121,34 +121,34 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               />
 
               {/* Server Error Message */}
-  {serverError && (
-    <p className="text-sm text-red-500 text-left">{serverError}</p>
-  )}
+              {serverError && (
+                <p className="text-sm text-red-500 text-left">{serverError}</p>
+              )}
 
               {/* Submit Button */}
               <Button type="submit" size="wide-lg" disabled={isLoading}>
-    {isLoading ? "logging in..." : "login"}
-  </Button>
-              
+                {isLoading ? "Logging in..." : "Login"}
+              </Button>
+
             </form>
           </Form>
 
           {/* OR Separator */}
           <div className="flex items-center gap-2 mt-5 mb-5">
             <div className="flex-1 h-px bg-muted"></div>
-            <span className="text-xl text-muted-foreground">or</span>
+            <span className="text-xl text-muted-foreground">OR</span>
             <div className="flex-1 h-px bg-muted"></div>
           </div>
 
           {/* Login with Google */}
           <Button variant="outline" size="wide-lg" onClick={() => login("google")}>
-            login with Google
+            Login with Google
           </Button>
 
           {/* Links */}
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="#" className="underline underline-offset-4">
+            <Link href="/register/patient" className="underline underline-offset-4">
               Sign up
             </Link>
           </div>

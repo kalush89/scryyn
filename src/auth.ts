@@ -45,43 +45,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials) return null;
         // Validate credentials using zod
         const parsedCredentials = z
-        .object({ 
-          email: z.string({ required_error: "Enter an email address" }).email(), 
-          password: z.string({ required_error: "Enter a password" }).min(6) 
-        })
-        .safeParse(credentials);
-        
+          .object({
+            email: z.string({ required_error: "Enter an email address" }).email(),
+            password: z.string({ required_error: "Enter a password" }).min(6)
+          })
+          .safeParse(credentials);
+
         if (!parsedCredentials.success) {
           return null; // Validation failed
         }
-          const { email, password } = parsedCredentials.data;
-          const user = await getUser(email);
-          if (!user) {
-            return null;
-          }
+        const { email, password } = parsedCredentials.data;
+        const user = await getUser(email);
+        if (!user) {
+          return null;
+        }
 
-          
-          // Compare provided password with stored hashed password
-          const passwordsMatch = await bcryptjs.compare(password, user.password!);
- 
-          if (!passwordsMatch) {
-            return null; // Invalid password
-          }
-            // Return user object if credentials are valid
-            return {
-              id: user.id,
-              email: user.email,
-              phone: user.phone,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role, // assuming role exists in your User model
-              avatarURL: user.avatarURL,
-            };
-          
-        
- 
-        
-        
+
+        // Compare provided password with stored hashed password
+        const passwordsMatch = await bcryptjs.compare(password, user.password!);
+
+        if (!passwordsMatch) {
+          return null; // Invalid password
+        }
+        // Return user object if credentials are valid
+        return {
+          id: user.id,
+          email: user.email,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role, // assuming role exists in your User model
+          avatarURL: user.avatarURL,
+        };
+
+
+
+
+
       },
     }),
   ],
@@ -172,7 +172,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       // Check if the user exists
       const user = await getUser(profile?.email!);
-      if(user) {
+      if (user) {
         // User exists, return true to allow sign-in
         return true;
       }
@@ -190,10 +190,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       });
 
-      const newAccount = await prisma.account.create({
-        data:{
-         // user: { connect: { id: newUser.id } },
-          userId: newUser?.id, // This is not needed if you are using the Prisma adapter
+       await prisma.account.create({
+        data: {
+          user: { connect: { id: newUser.id } },
+          //userId: newUser?.id, // This is not needed if you are using the Prisma adapter
           provider: account?.provider!,
           type: account?.type!,
           providerAccountId: account?.providerAccountId!,
@@ -206,21 +206,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       });
 
-      const newPatient = await prisma.patient.create({
+      await prisma.patient.create({
         data: {
-          id: newUser.id,
+          user: { connect: { id: newUser.id } },
+          //id: newUser.id,
           dateOfBirth: profile?.birthdate,
           gender: profile?.gender,
         },
-        
+
       });
-      
+
       return true;
     },
 
   },
 
-  
+
 
   pages: {
     signIn: "/app/login", // Custom sign-in page
